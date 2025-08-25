@@ -1,0 +1,217 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String   @id @default(uuid())
+  email          String   @unique
+  phone          String   @unique
+  password       String
+  userType       UserType
+  companyName    String
+  industry       String
+  annualRevenue  String
+  location       String
+  gstin          String?
+  verified       Boolean  @default(false)
+  isAdmin        Boolean  @default(false)
+  emailVerificationToken String?
+  emailVerificationTokenExpires DateTime?
+  phoneVerificationCode String?
+  phoneVerificationCodeExpires DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  products       Product[] @relation("SupplierProducts")
+  supplierProfile SupplierProfile?
+  orders         Order[] @relation("BuyerOrders")
+  receivedOrders Order[] @relation("SupplierOrders")
+  payments       Payment[]
+  reviews        Review[]
+  buyerInquiries    Inquiry[] @relation("BuyerInquiries")
+  supplierInquiries Inquiry[] @relation("SupplierInquiries")
+  messages         Message[]
+}
+
+enum UserType {
+  buyer
+  supplier
+}
+
+model Product {
+  id            String   @id @default(uuid())
+  supplier      User     @relation(fields: [supplierId], references: [id], name: "SupplierProducts")
+  supplierId    String
+  title         String
+  category      ProductCategory
+  description   String
+  model         String
+  capacity      String
+  powerRequirement String
+  dimensions    String
+  weight        String
+  certifications String[]
+  basePrice     Float
+  currency      Currency
+  moq           Int
+  priceBreaks   Json
+  images        String[]
+  inStock       Boolean  @default(true)
+  leadTime      String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  orderItems    OrderItem[]
+  reviews       Review[]
+  inquiries Inquiry[]
+}
+
+enum ProductCategory {
+  electronics
+  textile
+  manufacturing
+  food_processing
+}
+
+enum Currency {
+  USD
+  CNY
+}
+
+model SupplierProfile {
+  id              String   @id @default(uuid())
+  user            User     @relation(fields: [userId], references: [id])
+  userId          String   @unique
+  companyName     String
+  description     String
+  establishedYear Int
+  city            String
+  province        String
+  country         String
+  certifications  String[]
+  businessLicense String
+  email           String
+  phone           String
+  whatsapp        String?
+  wechat          String?
+  emailVerified   Boolean  @default(false)
+  phoneVerified   Boolean  @default(false)
+  businessVerified Boolean @default(false)
+  rating          Float    @default(0)
+  totalOrders     Int      @default(0)
+  responseTime    String
+}
+
+model Order {
+  id            String   @id @default(uuid())
+  buyer         User     @relation("BuyerOrders", fields: [buyerId], references: [id])
+  buyerId       String
+  supplier      User     @relation("SupplierOrders", fields: [supplierId], references: [id])
+  supplierId    String
+  products      OrderItem[]
+  totalAmount   Float
+  status        OrderStatus
+  shippingAddress String
+  paymentDetails Payment[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  reviews       Review[]
+}
+
+model OrderItem {
+  id          String   @id @default(uuid())
+  order       Order    @relation(fields: [orderId], references: [id])
+  orderId     String
+  product     Product  @relation(fields: [productId], references: [id])
+  productId   String
+  quantity    Int
+  unitPrice   Float
+  specifications String?
+}
+
+enum OrderStatus {
+  pending
+  confirmed
+  processing
+  shipped
+  delivered
+  cancelled
+}
+
+model Payment {
+  id          String   @id @default(uuid())
+  order       Order    @relation(fields: [orderId], references: [id])
+  orderId     String
+  amount      Float
+  currency    String
+  status      PaymentStatus
+  transactionId String?
+  provider    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum PaymentStatus {
+  initiated
+  successful
+  failed
+  refunded
+  held
+  released
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String
+  buyer     User     @relation(fields: [buyerId], references: [id])
+  buyerId   String
+  order     Order    @relation(fields: [orderId], references: [id])
+  orderId   String
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now())
+}
+
+model Inquiry {
+  id          String   @id @default(uuid())
+  product     Product  @relation(fields: [productId], references: [id])
+  productId   String
+  buyer       User     @relation("BuyerInquiries", fields: [buyerId], references: [id])
+  buyerId     String
+  supplier    User     @relation("SupplierInquiries", fields: [supplierId], references: [id])
+  supplierId  String
+  inquiryType String
+  message     String
+  requirements Json?
+  status      InquiryStatus
+  createdAt   DateTime @default(now())
+  messages    Message[]
+}
+
+enum InquiryStatus {
+  pending
+  responded
+  quoted
+  closed
+}
+
+model Message {
+  id         String   @id @default(uuid())
+  inquiry    Inquiry  @relation(fields: [inquiryId], references: [id])
+  inquiryId  String
+  sender     User     @relation(fields: [senderId], references: [id])
+  senderId   String
+  content    String
+  createdAt  DateTime @default(now())
+}
