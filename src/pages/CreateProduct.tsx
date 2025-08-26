@@ -41,13 +41,15 @@ const CreateProduct = () => {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    category_id: "",
-    price_range: "",
-    min_order_quantity: "",
-    country_of_origin: "China",
-    certification_standards: [] as string[],
+    category: "",
+    priceRange: "",
+    minOrderQuantity: "",
+    countryOfOrigin: "China",
+    certification: [] as string[],
     specifications: {}
   });
+
+  console.log(formData , "formdata")
 
   useEffect(() => {
     if (user) {
@@ -115,42 +117,74 @@ const CreateProduct = () => {
     URL.revokeObjectURL(url);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!user) {
-      toast({
-        title: 'Error',
-        description: 'You must be logged in as a supplier to create a product.',
-        variant: 'destructive',
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (!user) {
+    toast({
+      title: "Error",
+      description: "You must be logged in as a supplier to create a product.",
+      variant: "destructive",
+    });
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const token = localStorage.getItem("auth_token");
+    const formDataToSend = new FormData();
+
+    // append text fields
+    Object.entries(formData).forEach(([key, value]) => {
+      formDataToSend.append(key, value as string);
+    });
+
+    // append tags
+    formDataToSend.append("tags", JSON.stringify(tags));
+
+    // append certifications (if you add them from UI)
+    formDataToSend.append("certifications", JSON.stringify([]));
+
+    // append images
+    if (fileInputRef.current?.files) {
+      Array.from(fileInputRef.current.files).forEach((file) => {
+        formDataToSend.append("images", file);
       });
-      return;
     }
 
-    setLoading(true);
-    
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // For demo purposes, just show success
-      toast({
-        title: 'Success',
-        description: 'Product created successfully and is pending approval!',
-      });
-      
-      navigate('/dashboard');
-    } catch (error: any) {
-      console.error('Error creating product:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to create product. Please try again.',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    const response = await fetch("http://localhost:5000/api/products/create-new", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`, // keep auth header
+      },
+      body: formDataToSend, // no Content-Type → browser sets it
+    });
+
+    if (!response.ok) throw new Error("Failed to create product");
+
+    const data = await response.json();
+
+    toast({
+      title: "Success",
+      description: "Product created successfully and is pending approval!",
+    });
+
+    navigate("/dashboard");
+  } catch (error) {
+    console.error("Error creating product:", error);
+    toast({
+      title: "Error",
+      description: "Failed to create product. Please try again.",
+      variant: "destructive",
+    });
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -205,13 +239,13 @@ const CreateProduct = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="category">Category</Label>
-                    <Select onValueChange={(value) => handleInputChange('category_id', value)}>
+                    <Select onValueChange={(value) => handleInputChange('category', value)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a category" />
                       </SelectTrigger>
                       <SelectContent>
                         {categories.map((category) => (
-                          <SelectItem key={category.id} value={category.id}>
+                          <SelectItem key={category.name} value={category.name}>
                             {category.name}
                           </SelectItem>
                         ))}
@@ -220,11 +254,11 @@ const CreateProduct = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="price_range">Price Range</Label>
+                    <Label htmlFor="priceRange">Price Range</Label>
                     <Input
-                      id="price_range"
-                      value={formData.price_range}
-                      onChange={(e) => handleInputChange('price_range', e.target.value)}
+                      id="priceRange"
+                      value={formData.priceRange}
+                      onChange={(e) => handleInputChange('priceRange', e.target.value)}
                       placeholder="e.g., $10-50 per unit"
                     />
                   </div>
@@ -232,21 +266,21 @@ const CreateProduct = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="min_order_quantity">Minimum Order Quantity</Label>
+                    <Label htmlFor="minOrderQuantity">Minimum Order Quantity</Label>
                     <Input
-                      id="min_order_quantity"
+                      id="minOrderQuantity"
                       type="number"
-                      value={formData.min_order_quantity}
-                      onChange={(e) => handleInputChange('min_order_quantity', e.target.value)}
+                      value={formData.minOrderQuantity}
+                      onChange={(e) => handleInputChange('minOrderQuantity', e.target.value)}
                       placeholder="e.g., 100"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="country_of_origin">Country of Origin</Label>
+                    <Label htmlFor="countryOfOrigin">Country of Origin</Label>
                     <Select 
-                      value={formData.country_of_origin} 
-                      onValueChange={(value) => handleInputChange('country_of_origin', value)}
+                      value={formData.countryOfOrigin} 
+                      onValueChange={(value) => handleInputChange('countryOfOrigin', value)}
                     >
                       <SelectTrigger>
                         <SelectValue />

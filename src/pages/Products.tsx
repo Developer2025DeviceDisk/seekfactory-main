@@ -1,7 +1,6 @@
-// app/page.tsx
 "use client";
+import { useState } from "react";
 import Header from "@/components/Layout/Header";
-import { Footer } from "react-day-picker";
 
 interface Product {
   id: number;
@@ -18,124 +17,256 @@ const products: Product[] = [
   {
     id: 1,
     title: "Test CNC Machine",
-    category: "manufacturing",
+    category: "Manufacturing",
     price: "$50,000",
     stock: true,
     moq: "1 units",
     leadTime: "4-6 weeks",
-    image: "https://images.unsplash.com/photo-1647427060118-4911c9821b82?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzF8MHwxfHNlYXJjaHwyfHxpbmR1c3RyaWFsJTIwbWFjaGluZXJ5fGVufDB8fHx8MTc1NTY4MTQ3NXww&ixlib=rb-4.1.0&q=85",
+    image:
+      "https://images.unsplash.com/photo-1647427060118-4911c9821b82?ixlib=rb-4.1.0&q=85",
   },
   {
-    id: 2,
+    id: 1,
     title: "Test CNC Machine",
-    category: "manufacturing",
+    category: "Manufacturing",
     price: "$50,000",
     stock: true,
     moq: "1 units",
     leadTime: "4-6 weeks",
-    image: "https://images.unsplash.com/photo-1647427060118-4911c9821b82?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzF8MHwxfHNlYXJjaHwyfHxpbmR1c3RyaWFsJTIwbWFjaGluZXJ5fGVufDB8fHx8MTc1NTY4MTQ3NXww&ixlib=rb-4.1.0&q=85",
+    image:
+      "https://images.unsplash.com/photo-1647427060118-4911c9821b82?ixlib=rb-4.1.0&q=85",
   },
   {
-    id: 3,
+    id: 1,
     title: "Test CNC Machine",
-    category: "manufacturing",
+    category: "Manufacturing",
     price: "$50,000",
     stock: true,
     moq: "1 units",
     leadTime: "4-6 weeks",
-    image: "https://images.unsplash.com/photo-1647427060118-4911c9821b82?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzF8MHwxfHNlYXJjaHwyfHxpbmR1c3RyaWFsJTIwbWFjaGluZXJ5fGVufDB8fHx8MTc1NTY4MTQ3NXww&ixlib=rb-4.1.0&q=85",
+    image:
+      "https://images.unsplash.com/photo-1647427060118-4911c9821b82?ixlib=rb-4.1.0&q=85",
   },
   {
-    id: 4,
+    id: 1,
     title: "Test CNC Machine",
-    category: "manufacturing",
+    category: "Manufacturing",
     price: "$50,000",
     stock: true,
     moq: "1 units",
     leadTime: "4-6 weeks",
-    image: "https://images.unsplash.com/photo-1647427060118-4911c9821b82?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzF8MHwxfHNlYXJjaHwyfHxpbmR1c3RyaWFsJTIwbWFjaGluZXJ5fGVufDB8fHx8MTc1NTY4MTQ3NXww&ixlib=rb-4.1.0&q=85",
+    image:
+      "https://images.unsplash.com/photo-1647427060118-4911c9821b82?ixlib=rb-4.1.0&q=85",
   },
   {
-    id: 5,
+    id: 1,
     title: "Test CNC Machine",
-    category: "manufacturing",
+    category: "Manufacturing",
     price: "$50,000",
     stock: true,
     moq: "1 units",
     leadTime: "4-6 weeks",
-    image: "https://images.unsplash.com/photo-1647427060118-4911c9821b82?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzF8MHwxfHNlYXJjaHwyfHxpbmR1c3RyaWFsJTIwbWFjaGluZXJ5fGVufDB8fHx8MTc1NTY4MTQ3NXww&ixlib=rb-4.1.0&q=85",
+    image:
+      "https://images.unsplash.com/photo-1647427060118-4911c9821b82?ixlib=rb-4.1.0&q=85",
+  },
+  {
+    id: 1,
+    title: "Test CNC Machine",
+    category: "Manufacturing",
+    price: "$50,000",
+    stock: true,
+    moq: "1 units",
+    leadTime: "4-6 weeks",
+    image:
+      "https://images.unsplash.com/photo-1647427060118-4911c9821b82?ixlib=rb-4.1.0&q=85",
+  },
+  {
+    id: 1,
+    title: "Test CNC Machine",
+    category: "Manufacturing",
+    price: "$50,000",
+    stock: true,
+    moq: "1 units",
+    leadTime: "4-6 weeks",
+    image:
+      "https://images.unsplash.com/photo-1647427060118-4911c9821b82?ixlib=rb-4.1.0&q=85",
   },
 ];
 
 export default function Home() {
+  const [showFilters, setShowFilters] = useState(false);
+  const [category, setCategory] = useState("All Categories");
+  const [sortBy, setSortBy] = useState("Newest First");
+  const [sortOrder, setSortOrder] = useState("Descending");
+  const [minPrice, setMinPrice] = useState(0);
+  const [maxPrice, setMaxPrice] = useState(100000);
+
   return (
     <div>
-    <Header />
-    <main className="p-8 px-32 bg-gray-50 min-h-screen">
-      <div className="mb-6 flex justify-between items-center">
-        <input
-          type="text"
-          placeholder="Search for machinery..."
-          className="px-4 py-2 border rounded-lg w-full max-w-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <button className="ml-4 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100">
-          Filters
-        </button>
-      </div>
-
-      <h2 className="text-2xl font-bold mb-6">Products ({products.length})</h2>
-
-      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {products.map((product) => (
-          <div
-            key={product.id}
-            className="bg-white shadow rounded-2xl overflow-hidden transition hover:shadow-xl"
+      <Header />
+      <main className="p-4 sm:p-6 md:p-8 lg:px-20 xl:px-32 bg-gray-50 min-h-screen">
+        {/* Search + Filters Button */}
+        <div className="mb-6 flex flex-col sm:flex-row justify-between gap-3 items-stretch sm:items-center">
+          <input
+            type="text"
+            placeholder="Search for machinery..."
+            className="px-4 py-2 border rounded-lg flex-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="sm:w-auto w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
           >
-            <div className="relative h-56 w-full">
-              <img
-                src={product.image}
-                alt={product.title}
-                className="w-full h-full object-cover"
-              />
-              <span className="absolute top-2 right-2 bg-black text-white text-xs px-2 py-1 rounded">
-                {product.category}
-              </span>
+            Filters
+          </button>
+        </div>
+
+        {/* Filters Dropdown */}
+        {showFilters && (
+          <div className="mb-6 p-6 bg-white rounded-xl shadow-md flex flex-col lg:flex-row flex-wrap gap-6">
+            {/* Category */}
+            <div className="flex-1 min-w-[200px]">
+              <label className="block text-sm font-medium mb-1">Category</label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="border w-full px-3 py-2 rounded-md"
+              >
+                <option>All Categories</option>
+                <option>Electronics</option>
+                <option>Textile</option>
+                <option>Manufacturing</option>
+                <option>Food Processing</option>
+              </select>
             </div>
 
-            <div className="p-4">
-              <h3 className="text-lg font-semibold">{product.title}</h3>
-              <p className="text-gray-500 text-sm mb-2">
-                High precision CNC machine for manufacturing
-              </p>
+            {/* Sort By */}
+            <div className="flex-1 min-w-[200px]">
+              <label className="block text-sm font-medium mb-1">Sort By</label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="border w-full px-3 py-2 rounded-md"
+              >
+                <option>Newest First</option>
+                <option>Price</option>
+                <option>Name</option>
+              </select>
+            </div>
 
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-blue-600 font-bold text-lg">
-                  {product.price}
-                </span>
-                <span className="bg-black text-white text-xs px-2 py-1 rounded">
-                  {product.stock ? "In Stock" : "Out of Stock"}
-                </span>
-              </div>
+            {/* Sort Order */}
+            <div className="flex-1 min-w-[200px]">
+              <label className="block text-sm font-medium mb-1">Sort Order</label>
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+                className="border w-full px-3 py-2 rounded-md"
+              >
+                <option>Ascending</option>
+                <option>Descending</option>
+              </select>
+            </div>
 
-              <p className="text-gray-500 text-sm">MOQ: {product.moq}</p>
-              <p className="text-gray-500 text-sm mb-3">
-                Lead Time: {product.leadTime}
-              </p>
+            {/* Price Range */}
+            <div className="flex-1 min-w-[250px]">
+              <label className="block text-sm font-medium mb-2">
+                Price Range: ${minPrice} - ${maxPrice}
+              </label>
+              <div className="relative flex items-center">
+                {/* Min Price Slider */}
+                <input
+                  type="range"
+                  min="0"
+                  max="100000"
+                  step="1000"
+                  value={minPrice}
+                  onChange={(e) =>
+                    setMinPrice(Math.min(Number(e.target.value), maxPrice - 1000))
+                  }
+                  className="absolute pointer-events-none appearance-none w-full h-1 bg-transparent z-20 [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-600"
+                />
 
-              <div className="flex gap-2">
-                <button className="flex-1 border border-gray-300 py-2 rounded-lg hover:bg-gray-100 transition">
-                  View Details
-                </button>
-                <button className="flex-1 bg-black text-white py-2 rounded-lg hover:bg-gray-800 transition">
-                  Inquire
-                </button>
+                {/* Max Price Slider */}
+                <input
+                  type="range"
+                  min="0"
+                  max="100000"
+                  step="1000"
+                  value={maxPrice}
+                  onChange={(e) =>
+                    setMaxPrice(Math.max(Number(e.target.value), minPrice + 1000))
+                  }
+                  className="absolute pointer-events-none appearance-none w-full h-1 bg-transparent z-10 [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-600"
+                />
+
+                {/* Background Track */}
+                <div className="relative w-full h-1 bg-gray-300 rounded">
+                  <div
+                    className="absolute h-1 bg-blue-600 rounded"
+                    style={{
+                      left: `${(minPrice / 100000) * 100}%`,
+                      right: `${100 - (maxPrice / 100000) * 100}%`,
+                    }}
+                  ></div>
+                </div>
               </div>
             </div>
           </div>
-        ))}
-      </div>
-    </main>
-    {/* <Footer /> */}
-  </div>
+        )}
+
+        {/* Products Grid */}
+        <h2 className="text-xl sm:text-2xl font-bold mb-6">
+          Products ({products.length})
+        </h2>
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+          {products.map((product) => (
+            <div
+              key={product.id}
+              className="bg-white shadow rounded-2xl overflow-hidden transition hover:shadow-xl"
+            >
+              <div className="relative h-48 sm:h-56 w-full">
+                <img
+                  src={product.image}
+                  alt={product.title}
+                  className="w-full h-full object-cover"
+                />
+                <span className="absolute top-2 right-2 bg-black text-white text-xs px-2 py-1 rounded">
+                  {product.category}
+                </span>
+              </div>
+
+              <div className="p-4">
+                <h3 className="text-base sm:text-lg font-semibold">{product.title}</h3>
+                <p className="text-gray-500 text-sm mb-2">
+                  High precision CNC machine for manufacturing
+                </p>
+
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-blue-600 font-bold text-lg">
+                    {product.price}
+                  </span>
+                  <span className="bg-black text-white text-xs px-2 py-1 rounded">
+                    {product.stock ? "In Stock" : "Out of Stock"}
+                  </span>
+                </div>
+
+                <p className="text-gray-500 text-sm">MOQ: {product.moq}</p>
+                <p className="text-gray-500 text-sm mb-3">
+                  Lead Time: {product.leadTime}
+                </p>
+
+                <div className="flex gap-2">
+                  <button className="flex-1 border border-gray-300 py-2 rounded-lg hover:bg-gray-100 transition text-sm">
+                    View Details
+                  </button>
+                  <button className="flex-1 bg-black text-white py-2 rounded-lg hover:bg-gray-800 transition text-sm">
+                    Inquire
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </main>
+    </div>
   );
 }

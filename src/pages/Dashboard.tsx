@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import ProductManagement from "@/components/Dashboard/ProductManagement";
+import MyProducts from "../components/Dashboard/products";
 
 interface Profile {
   id: string;
@@ -64,14 +65,41 @@ interface Inquiry {
 
 const Dashboard = () => {
   const { user, session } = useAuth();
+  const [products, setProducts] = useState<any[]>([]);
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user && session) {
-      fetchDashboard();
+
+
+useEffect(() => {
+  if (user && session) {
+    fetchDashboard();
+    // fetchProducts(); // 👈 add this
+  }
+}, [user, session]);
+
+const fetchProducts = async () => {
+  const auth_token = localStorage.getItem("auth_token");
+  try {
+    const res = await fetch("http://localhost:5000/api/products/my/products", {
+      headers: {
+        Authorization: `Bearer ${auth_token}`,
+      },
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setProducts(data);
+      console.log(data, "products in dashboard");
     }
-  }, [user, session]);
+  } catch (error) {
+    console.error("Error fetching products:", error);
+  }
+};
+
+useEffect(()=>{
+  fetchProducts();
+  console.log(fetchProducts());
+},[])
 
   const fetchDashboard = async () => {
     setLoading(true);
@@ -96,20 +124,20 @@ const Dashboard = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <div className="container mx-auto px-4 py-16">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-4 text-muted-foreground">Loading your dashboard...</p>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="min-h-screen bg-background">
+  //       <Header />
+  //       <div className="container mx-auto px-4 py-16">
+  //         <div className="text-center">
+  //           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
+  //           <p className="mt-4 text-muted-foreground">Loading your dashboard...</p>
+  //         </div>
+  //       </div>
+  //       <Footer />
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="min-h-screen bg-background">
@@ -270,7 +298,9 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="products">
+            {/* <h3>i am king of</h3> */}
             <ProductManagement />
+            {/* <MyProducts/> */}
           </TabsContent>
 
           <TabsContent value="inquiries">

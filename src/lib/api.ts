@@ -1,5 +1,5 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://seekfactory-backend.onrender.com/api';
-
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://seekfactory-backend.onrender.com//api';
 interface ApiResponse<T = any> {
   success: boolean;
   message: string;
@@ -67,7 +67,7 @@ class ApiClient {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-
+    console.log(this.baseURL , "this.baseurl is")
       const response = await fetch(`${this.baseURL}/health`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },

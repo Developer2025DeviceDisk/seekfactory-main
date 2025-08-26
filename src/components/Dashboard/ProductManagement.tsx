@@ -8,11 +8,11 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Eye, 
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
   Package,
   TrendingUp,
   Calendar,
@@ -41,31 +41,37 @@ const ProductManagement = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
+  console.log(products, "products in product management file");
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  useEffect(() => {
-    fetchMyProducts();
-  }, []);
 
-  const fetchMyProducts = async () => {
+  const fetchProducts = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const response = await apiClient.getMyProducts();
-      if (response.success && response.data) {
-        setProducts(response.data);
-      }
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch your products',
-        variant: 'destructive'
+      const auth_token = localStorage.getItem("auth_token");
+      console.log(auth_token, "auth_token");
+      const res = await fetch("http://localhost:5000/api/products/my/products", {
+        headers: {
+          Authorization: `Bearer ${auth_token}`,
+        },
       });
-    } finally {
+      const data = await res.json();
+      if (res.ok) {
+        setProducts(data?.data);
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching products:", error);
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchProducts();
+    console.log(fetchProducts());
+  }, [])
+
 
   const handleDeleteProduct = async (productId: string) => {
     try {
@@ -170,7 +176,7 @@ const ProductManagement = () => {
               <div>
                 <p className="text-sm text-muted-foreground">Active Products</p>
                 <p className="text-2xl font-bold">
-                  {products.filter(p => p.status === 'active').length}
+                  {/* {products.filter(p => p.status === 'active').length} */}
                 </p>
               </div>
               <TrendingUp className="w-8 h-8 text-muted-foreground" />
@@ -184,7 +190,7 @@ const ProductManagement = () => {
               <div>
                 <p className="text-sm text-muted-foreground">Total Views</p>
                 <p className="text-2xl font-bold">
-                  {products.reduce((sum, p) => sum + p.views, 0)}
+                  {/* {products.reduce((sum, p) => sum + p.views, 0)} */}
                 </p>
               </div>
               <Eye className="w-8 h-8 text-muted-foreground" />
@@ -198,7 +204,7 @@ const ProductManagement = () => {
               <div>
                 <p className="text-sm text-muted-foreground">Total Inquiries</p>
                 <p className="text-2xl font-bold">
-                  {products.reduce((sum, p) => sum + p.inquiries, 0)}
+                  {/* {products.reduce((sum, p) => sum + p.inquiries, 0)} */}
                 </p>
               </div>
               <DollarSign className="w-8 h-8 text-muted-foreground" />
@@ -218,7 +224,8 @@ const ProductManagement = () => {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
               <p className="mt-2 text-muted-foreground">Loading products...</p>
             </div>
-          ) : products.length === 0 ? (
+          ) : 
+          products.length === 0 ? (
             <div className="text-center py-12">
               <Package className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-medium mb-2">No products yet</h3>
@@ -269,9 +276,9 @@ const ProductManagement = () => {
                                 <div>
                                   <strong>Origin:</strong> {selectedProduct?.countryOfOrigin || 'N/A'}
                                 </div>
-                                <div>
+                                {/* <div>
                                   <strong>Views:</strong> {selectedProduct?.views}
-                                </div>
+                                </div> */}
                                 <div>
                                   <strong>Inquiries:</strong> {selectedProduct?.inquiries}
                                 </div>
