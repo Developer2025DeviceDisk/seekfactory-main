@@ -55,7 +55,7 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/profile" element={<ProfileManagement />} />
           <Route path="/dashboard/products/new" element={<CreateProduct />} />
-          <Route path="/products/new" element={<ProductForm />} />
+          {/* <Route path="/products/new" element={<ProductForm />} /> */}
           <Route path="/products/edit/:id" element={<ProductForm />} />
           <Route path="/inquiry/new" element={<CreateInquiry />} />
           <Route path="/supplier-guidelines" element={<SupplierGuidelines />} />

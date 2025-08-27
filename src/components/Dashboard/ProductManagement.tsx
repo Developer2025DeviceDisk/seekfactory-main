@@ -150,7 +150,7 @@ const ProductManagement = () => {
             Manage your product catalog and monitor performance
           </p>
         </div>
-        <Button onClick={() => navigate('/products/new')}>
+        <Button onClick={() => navigate('products/create-new')}>
           <Plus className="w-4 h-4 mr-2" />
           Add Product
         </Button>
@@ -165,7 +165,7 @@ const ProductManagement = () => {
                 <p className="text-sm text-muted-foreground">Total Products</p>
                 <p className="text-2xl font-bold">{products.length}</p>
               </div>
-              <Package className="w-8 h-8 text-muted-foreground" />
+              <Package className="w-8 h-8 text-muted-foreground"/>
             </div>
           </CardContent>
         </Card>

@@ -26,6 +26,14 @@ const mockCategories: Category[] = [
   { id: "4", name: "Manufacturing Equipment" },
   { id: "5", name: "Packaging Machinery" }
 ];
+const categoryWithSubcategories: Record<string, string[]> = {
+  "Industrial Machinery": ["CNC Machines", "Lathes", "Drills"],
+  "Construction Equipment": ["Excavators", "Cranes", "Loaders"],
+  "Agricultural Tools": ["Tractors", "Ploughs", "Harvesters"],
+  "Manufacturing Equipment": ["Conveyors", "Welding Machines"],
+  "Packaging Machinery": ["Filling Machines", "Labeling Machines", "Sealing Machines"]
+};
+
 
 const CreateProduct = () => {
   const { user } = useAuth();
@@ -33,6 +41,7 @@ const CreateProduct = () => {
   const { toast } = useToast();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
+  const [fileList, setFileList] = useState<File[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [currentTag, setCurrentTag] = useState("");
   const [images, setImages] = useState<string[]>([]);
@@ -41,7 +50,9 @@ const CreateProduct = () => {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
+    sort_description: "",
     category: "",
+    subcategory: "",
     priceRange: "",
     minOrderQuantity: "",
     countryOfOrigin: "China",
@@ -49,7 +60,7 @@ const CreateProduct = () => {
     specifications: {}
   });
 
-  console.log(formData , "formdata")
+  console.log(formData, "formdata")
 
   useEffect(() => {
     if (user) {
@@ -63,7 +74,7 @@ const CreateProduct = () => {
         navigate('/dashboard');
         return;
       }
-      
+
       // Load mock categories
       setCategories(mockCategories);
     }
@@ -88,100 +99,107 @@ const CreateProduct = () => {
   };
 
   // Placeholder image upload handler
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files || files.length === 0) return;
-    
-    if (images.length + files.length > 3) {
-      toast({ 
-        title: 'Limit reached', 
-        description: 'You can upload up to 3 images.', 
-        variant: 'destructive' 
+    if (!files) return;
+
+    if (images.length + files.length > 4) {
+      toast({
+        title: "Limit reached",
+        description: "You can upload up to 4 images.",
+        variant: "destructive",
       });
       return;
     }
 
-    // For demo purposes, create placeholder URLs
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const placeholderUrl = URL.createObjectURL(file);
-      setImages(prev => [...prev, placeholderUrl]);
-    }
-    
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    const newFiles = Array.from(files);
+
+    // add file objects for upload
+    setFileList((prev) => [...prev, ...newFiles]);
+
+    // add preview URLs for display
+    newFiles.forEach((file) => {
+      const url = URL.createObjectURL(file);
+      setImages((prev) => [...prev, url]);
+    });
+
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleRemoveImage = (url: string) => {
-    setImages(prev => prev.filter(img => img !== url));
-    // Revoke object URL to prevent memory leaks
+  const handleRemoveImage = (url: string, index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+    setFileList((prev) => prev.filter((_, i) => i !== index));
     URL.revokeObjectURL(url);
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  if (!user) {
-    toast({
-      title: "Error",
-      description: "You must be logged in as a supplier to create a product.",
-      variant: "destructive",
-    });
-    return;
-  }
-
-  setLoading(true);
-
-  try {
-    const token = localStorage.getItem("auth_token");
-    const formDataToSend = new FormData();
-
-    // append text fields
-    Object.entries(formData).forEach(([key, value]) => {
-      formDataToSend.append(key, value as string);
-    });
-
-    // append tags
-    formDataToSend.append("tags", JSON.stringify(tags));
-
-    // append certifications (if you add them from UI)
-    formDataToSend.append("certifications", JSON.stringify([]));
-
-    // append images
-    if (fileInputRef.current?.files) {
-      Array.from(fileInputRef.current.files).forEach((file) => {
-        formDataToSend.append("images", file);
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in as a supplier to create a product.",
+        variant: "destructive",
       });
+      return;
     }
 
-    const response = await fetch("http://localhost:5000/api/products/create-new", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`, // keep auth header
-      },
-      body: formDataToSend, // no Content-Type → browser sets it
-    });
+    setLoading(true);
 
-    if (!response.ok) throw new Error("Failed to create product");
+    try {
+      const token = localStorage.getItem("auth_token");
+      const formDataToSend = new FormData();
 
-    const data = await response.json();
+      // append text fields
+      Object.entries(formData).forEach(([key, value]) => {
+        formDataToSend.append(key, value as string);
+      });
 
-    toast({
-      title: "Success",
-      description: "Product created successfully and is pending approval!",
-    });
+      // append tags
+      formDataToSend.append("tags", JSON.stringify(tags));
 
-    navigate("/dashboard");
-  } catch (error) {
-    console.error("Error creating product:", error);
-    toast({
-      title: "Error",
-      description: "Failed to create product. Please try again.",
-      variant: "destructive",
-    });
-  } finally {
-    setLoading(false);
-  }
-};
+      // append certifications (if you add them from UI)
+      formDataToSend.append("certifications", JSON.stringify([]));
+
+      fileList.forEach((file) => {
+        formDataToSend.append("images", file);
+      });
+      // // append images
+      // if (fileInputRef.current?.files) {
+      //   Array.from(fileInputRef.current.files).forEach((file) => {
+      //     formDataToSend.append("images", file);
+      //   });
+      // }
+
+      const response = await fetch("http://localhost:5000/api/products/create-new", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`, // keep auth header
+        },
+        body: formDataToSend, // no Content-Type → browser sets it
+      });
+
+      if (!response.ok) throw new Error("Failed to create product");
+
+      const data = await response.json();
+
+      toast({
+        title: "Success",
+        description: "Product created successfully and is pending approval!",
+      });
+
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Error creating product:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create product. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
 
@@ -189,7 +207,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
@@ -226,6 +244,16 @@ const handleSubmit = async (e: React.FormEvent) => {
                 </div>
 
                 <div className="space-y-2">
+                  <Label htmlFor="description">sort_description</Label>
+                  <Textarea
+                    id="sort_description"
+                    value={formData.sort_description}
+                    onChange={(e) => handleInputChange('sort_description', e.target.value)}
+                    placeholder="Describe your product, its features, and benefits"
+                    rows={3}
+                  />
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="description">Description</Label>
                   <Textarea
                     id="description"
@@ -252,14 +280,34 @@ const handleSubmit = async (e: React.FormEvent) => {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="subcategory">Subcategory</Label>
+                    <Select
+                      value={formData.subcategory}
+                      onValueChange={(value) => handleInputChange("subcategory", value)}
+                      disabled={!formData.category} // disable until category selected
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a subcategory" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {formData.category &&
+                          categoryWithSubcategories[formData.category].map((sub) => (
+                            <SelectItem key={sub} value={sub}>
+                              {sub}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="priceRange">Price Range</Label>
+                    <Label htmlFor="priceRange">Price </Label>
                     <Input
                       id="priceRange"
                       value={formData.priceRange}
                       onChange={(e) => handleInputChange('priceRange', e.target.value)}
-                      placeholder="e.g., $10-50 per unit"
+                      placeholder="e.g., $100 per unit"
                     />
                   </div>
                 </div>
@@ -278,8 +326,8 @@ const handleSubmit = async (e: React.FormEvent) => {
 
                   <div className="space-y-2">
                     <Label htmlFor="countryOfOrigin">Country of Origin</Label>
-                    <Select 
-                      value={formData.countryOfOrigin} 
+                    <Select
+                      value={formData.countryOfOrigin}
                       onValueChange={(value) => handleInputChange('countryOfOrigin', value)}
                     >
                       <SelectTrigger>
@@ -368,7 +416,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Upload Images (up to 3)</Label>
+                  <Label>Upload Images (up to 4)</Label>
                   <input
                     type="file"
                     accept="image/*"
@@ -376,25 +424,25 @@ const handleSubmit = async (e: React.FormEvent) => {
                     ref={fileInputRef}
                     onChange={handleImageChange}
                     className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/80"
-                    disabled={images.length >= 3}
+                    disabled={images.length >= 4}
                   />
                   <p className="text-sm text-muted-foreground">
                     High-quality images help buyers understand your product better
                   </p>
                 </div>
-                
+
                 {images.length > 0 && (
                   <div className="flex gap-2 mt-4">
                     {images.map((url, i) => (
                       <div key={i} className="relative group">
-                        <img 
-                          src={url} 
-                          alt="Product" 
-                          className="w-24 h-24 object-cover rounded border" 
+                        <img
+                          src={url}
+                          alt="Product"
+                          className="w-24 h-24 object-cover rounded border"
                         />
-                        <button 
-                          type="button" 
-                          onClick={() => handleRemoveImage(url)} 
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(url)}
                           className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 text-xs opacity-80 group-hover:opacity-100 hover:bg-destructive/80"
                         >
                           <X className="w-3 h-3" />

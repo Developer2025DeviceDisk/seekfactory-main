@@ -157,6 +157,7 @@ useEffect(()=>{
               <div>
                 <h1 className="text-3xl font-heading font-bold text-foreground">
                   Welcome back, {dashboardData?.profile?.contact_person}
+                  {user?.name || 'guest'}
                 </h1>
                 <div className="flex items-center gap-2 mt-1">
                   <Badge variant={dashboardData?.profile?.is_verified ? "default" : "secondary"}>
