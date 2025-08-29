@@ -171,7 +171,7 @@ const CreateProduct = () => {
       //   });
       // }
 
-      const response = await fetch("http://localhost:5000/api/products/create-new", {
+      const response = await fetch("https://seekfactory-backend.onrender.com/api/products/create-new", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`, // keep auth header

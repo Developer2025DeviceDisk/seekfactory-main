@@ -18,7 +18,7 @@ const MyProducts: React.FC = () => {
     const fetchProducts = async () => {
       try {
         const token = localStorage.getItem("auth_token"); // JWT token
-        const res = await axios.get("http://localhost:5000/api/products/my/products", {
+        const res = await axios.get("https://seekfactory-backend.onrender.com/api/products/my/products", {
           headers: {
             Authorization: `Bearer ${token}`,
           },

@@ -51,7 +51,7 @@ const ProductManagement = () => {
     try {
       const auth_token = localStorage.getItem("auth_token");
       console.log(auth_token, "auth_token");
-      const res = await fetch("http://localhost:5000/api/products/my/products", {
+      const res = await fetch("https://seekfactory-backend.onrender.com/api/products/my/products", {
         headers: {
           Authorization: `Bearer ${auth_token}`,
         },
