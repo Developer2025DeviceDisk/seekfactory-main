@@ -175,7 +175,7 @@ const ProductForm = () => {
         minOrderQuantity: formData.minOrderQuantity ? parseInt(formData.minOrderQuantity) : undefined,
         countryOfOrigin: formData.countryOfOrigin,
         tags: formData.tags,
-        certifications: formData.certifications.trim(),
+        certifications: formData.certifications,
         images: formData.images
       };
 

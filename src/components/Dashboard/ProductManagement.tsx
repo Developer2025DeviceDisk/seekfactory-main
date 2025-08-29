@@ -190,7 +190,7 @@ const ProductManagement = () => {
               <div>
                 <p className="text-sm text-muted-foreground">Total Views</p>
                 <p className="text-2xl font-bold">
-                  {/* {products.reduce((sum, p) => sum + p.views, 0)} */}
+                  {products.reduce((sum, p) => sum + p.views, 0)}
                 </p>
               </div>
               <Eye className="w-8 h-8 text-muted-foreground" />
