@@ -41,7 +41,6 @@ const ProductManagement = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
-  console.log(products, "products in product management file");
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
@@ -50,8 +49,7 @@ const ProductManagement = () => {
     setLoading(true);
     try {
       const auth_token = localStorage.getItem("auth_token");
-      console.log(auth_token, "auth_token");
-      const res = await fetch("https://seekfactory-backend.onrender.com/api/products/my/products", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/products/my/products`, {
         headers: {
           Authorization: `Bearer ${auth_token}`,
         },
@@ -69,7 +67,6 @@ const ProductManagement = () => {
 
   useEffect(() => {
     fetchProducts();
-    console.log(fetchProducts());
   }, [])
 
 
@@ -150,14 +147,14 @@ const ProductManagement = () => {
             Manage your product catalog and monitor performance
           </p>
         </div>
-        <Button onClick={() => navigate('products/create-new')}>
+        <Button onClick={() => navigate('products/new')}>
           <Plus className="w-4 h-4 mr-2" />
           Add Product
         </Button>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -184,7 +181,7 @@ const ProductManagement = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        {/* <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -196,7 +193,7 @@ const ProductManagement = () => {
               <Eye className="w-8 h-8 text-muted-foreground" />
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
         <Card>
           <CardContent className="p-4">

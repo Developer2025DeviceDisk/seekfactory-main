@@ -5,13 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { 
-  ArrowLeft, 
-  MessageCircle, 
-  MapPin, 
-  Star, 
-  Package, 
-  Shield, 
+import {
+  ArrowLeft,
+  MessageCircle,
+  MapPin,
+  Star,
+  Package,
+  Shield,
   Globe,
   Phone,
   Mail
@@ -19,6 +19,7 @@ import {
 import Header from "@/components/Layout/Header";
 import Footer from "@/components/Layout/Footer";
 import { useAuth } from '@/contexts/AuthContext';
+import { useProducts } from '@/contexts/ProductContext';
 
 interface Product {
   id: string;
@@ -46,7 +47,9 @@ interface Product {
 }
 
 const ProductDetail = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
+  const { fetchProductById } = useProducts();
+
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -66,49 +69,74 @@ const ProductDetail = () => {
   const [inquiryLoading, setInquiryLoading] = useState(false);
   const [inquiryError, setInquiryError] = useState('');
   const [inquirySuccess, setInquirySuccess] = useState(false);
+  const [images, setImages] = useState<string[]>([]);
+  const [mediaList, setMediaList] = useState<string[]>([]);
+
 
 
   useEffect(() => {
-    if (id) {
-      fetchProduct();
-      fetchReviews();
-    }
+    const loadProduct = async () => {
+      setLoading(true);
+      const data = await fetchProductById(id);
+      console.log(data, "productdetaildata")
+      setProduct(data);
+
+      // Combine images + video (if exists)
+      const combinedMedia = [
+        ...(data.images || []),
+        ...(data.video ? [data.video] : []),
+      ];
+      setMediaList(combinedMedia);
+
+      setLoading(false);
+    };
+
+    if (id) loadProduct();
   }, [id]);
 
-  const fetchProduct = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/products/${id}`);
-      const data = await res.json();
-      if (res.ok) {
-        setProduct(data.product);
-      } else {
-        setProduct(null);
-      }
-    } catch (error) {
-      console.error('Error fetching product:', error);
-      setProduct(null);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const fetchReviews = async () => {
-    try {
-      const res = await fetch(`/api/reviews?productId=${id}`);
-      const data = await res.json();
-      if (res.ok) {
-        setReviews(data.reviews || []);
-        setAvgRating(data.avgRating || 0);
-      } else {
-        setReviews([]);
-        setAvgRating(0);
-      }
-    } catch (error) {
-      setReviews([]);
-      setAvgRating(0);
-    }
-  };
+  // const fetchProduct = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const res = await fetch(`http://localhost:5000/api/products/${id}`);
+  //     const data = await res.json();
+  //     console.log(data , " data of productdetail")
+  //     if (res.ok) {
+  //       setProduct(data);
+  //     } else {
+  //       setProduct(null);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error fetching product:', error);
+  //     setProduct(null);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  // const fetchReviews = async () => {
+  //   try {
+  //     const res = await fetch(`/api/reviews?productId=${id}`);
+  //     const data = await res.json();
+  //     if (res.ok) {
+  //       setReviews(data.reviews || []);
+  //       setAvgRating(data.avgRating || 0);
+  //     } else {
+  //       setReviews([]);
+  //       setAvgRating(0);
+  //     }
+  //   } catch (error) {
+  //     setReviews([]);
+  //     setAvgRating(0);
+  //   }
+  // };
+
+  //   useEffect(() => {
+  //   if (id) {
+  //     fetchProduct();
+  //     // fetchReviews();
+  //   }
+  // }, [id]);
 
   const handleOrderSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -237,7 +265,7 @@ const ProductDetail = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <main className="container mx-auto px-4 py-8">
         {/* Breadcrumb */}
         <div className="mb-6">
@@ -254,53 +282,82 @@ const ProductDetail = () => {
           <div className="lg:col-span-2">
             <Card>
               <CardContent className="p-6">
-                <div className="space-y-4">
-                  {/* Main Image */}
-                  <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
-                    {product.images && product.images.length > 0 ? (
-                      <img 
-                        src={product.images[selectedImage]} 
-                        alt={product.name}
-                        className="w-full h-full object-contain rounded-lg"
-                      />
+                <div className="flex flex-col md:flex-row gap-6">
+                  {/* Sidebar Thumbnails */}
+                  {mediaList.length > 0 && (
+                    <div className="flex md:flex-col gap-3 md:w-24 w-full md:h-[500px] overflow-auto">
+                      {mediaList.map((media: string, index: number) => {
+                        const fullUrl = `${import.meta.env.VITE_API_URL}${media}`;
+                        return (
+                          <button
+                            key={index}
+                            onClick={() => setSelectedImage(index)}
+                            className={`flex-shrink-0 border-2 rounded-lg overflow-hidden ${selectedImage === index
+                              ? "border-primary"
+                              : "border-transparent"
+                              }`}
+                          >
+                            {media.endsWith(".mp4") ? (
+                              <video src={fullUrl} className="w-20 h-20 object-cover" muted />
+                            ) : (
+                              <img src={fullUrl} alt={`${product.name} ${index + 1}`} className="w-20 h-20 object-cover" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+
+                  {/* Main Media Display */}
+                  <div className="flex-1 flex justify-center items-center border rounded-lg p-4 bg-muted">
+                    {mediaList.length > 0 ? (
+                      mediaList[selectedImage].endsWith(".mp4") ? (
+                        <video
+                          src={`${import.meta.env.VITE_API_URL}${mediaList[selectedImage]}`}
+                          controls
+                          autoPlay
+                          className="max-h-[500px] object-contain"
+                        />
+                      ) : (
+                        <img
+                          src={`${import.meta.env.VITE_API_URL}${mediaList[selectedImage]}`}
+                          alt={product.name}
+                          className="max-h-[500px] object-contain rounded-lg"
+                        />
+                      )
                     ) : (
                       <div className="text-center">
                         <Package className="w-16 h-16 text-muted-foreground mx-auto mb-2" />
-                        <p className="text-muted-foreground">No image available</p>
+                        <p className="text-muted-foreground">No media available</p>
                       </div>
                     )}
                   </div>
 
-                  {/* Image Thumbnails */}
-                  {product.images && product.images.length > 1 && (
-                    <div className="flex gap-2 overflow-x-auto">
-                      {product.images.map((image, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setSelectedImage(index)}
-                          className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${
-                            selectedImage === index ? 'border-primary' : 'border-transparent'
-                          }`}
-                        >
-                          <img 
-                            src={image} 
-                            alt={`${product.name} ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                        </button>
-                      ))}
-                    </div>
-                  )}
                 </div>
               </CardContent>
             </Card>
 
-            {/* Product Details */}
+
+
+            {/* Product Details Section */}
             <Card className="mt-6">
               <CardHeader>
                 <CardTitle>Product Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
+                <div>
+                  <h4 className="font-medium mb-2">Category</h4>
+                  <p className="text-muted-foreground">{product.category}</p>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">Sub-Category</h4>
+                  <p className="text-muted-foreground">{product.subcategory}</p>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">Short Description</h4>
+                  <p className="text-muted-foreground">{product.sort_description}</p>
+                </div>
                 <div>
                   <h4 className="font-medium mb-2">Description</h4>
                   <p className="text-muted-foreground">{product.description}</p>
@@ -317,11 +374,11 @@ const ProductDetail = () => {
                   </div>
                 )}
 
-                {product.certification_standards && product.certification_standards.length > 0 && (
+                {product.certification_standards?.length > 0 && (
                   <div>
                     <h4 className="font-medium mb-2">Certifications</h4>
                     <div className="flex flex-wrap gap-2">
-                      {product.certification_standards.map((cert, index) => (
+                      {product.certification_standards.map((cert: string, index: number) => (
                         <Badge key={index} variant="outline">
                           <Shield className="w-3 h-3 mr-1" />
                           {cert}
@@ -331,11 +388,11 @@ const ProductDetail = () => {
                   </div>
                 )}
 
-                {product.tags && product.tags.length > 0 && (
+                {product.tags?.length > 0 && (
                   <div>
                     <h4 className="font-medium mb-2">Tags</h4>
                     <div className="flex flex-wrap gap-2">
-                      {product.tags.map((tag, index) => (
+                      {product.tags.map((tag: string, index: number) => (
                         <Badge key={index} variant="secondary">{tag}</Badge>
                       ))}
                     </div>
@@ -344,6 +401,7 @@ const ProductDetail = () => {
               </CardContent>
             </Card>
           </div>
+
 
           {/* Product Info & Supplier */}
           <div className="space-y-6">
@@ -354,7 +412,7 @@ const ProductDetail = () => {
                   <div>
                     <CardTitle className="text-xl mb-2">{product.name}</CardTitle>
                     {product.categories && (
-                      <Badge variant="outline">{product.categories.name}</Badge>
+                      <Badge variant="outline">{product.categories}</Badge>
                     )}
                   </div>
                 </div>
@@ -362,10 +420,10 @@ const ProductDetail = () => {
               <CardContent className="space-y-4">
                 <div>
                   <h4 className="font-medium text-lg text-primary mb-1">
-                    {product.price_range || "Contact for quote"}
+                    <span>$</span> {product.priceRange || "Contact for quote"}
                   </h4>
                   <p className="text-sm text-muted-foreground">
-                    Min. order: {product.min_order_quantity || 'N/A'} units
+                    Min. order: {product.minOrderQuantity || 'N/A'} units
                   </p>
                 </div>
 
@@ -374,7 +432,7 @@ const ProductDetail = () => {
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm">
                     <MapPin className="w-4 h-4 text-muted-foreground" />
-                    <span>Origin: {product.country_of_origin}</span>
+                    <span>Origin: {product.countryOfOrigin}</span>
                   </div>
                 </div>
 
@@ -387,13 +445,13 @@ const ProductDetail = () => {
                       Send Inquiry
                     </Link>
                   </Button>
-                  <Button variant="outline" className="w-full">
+                  {/* <Button variant="outline" className="w-full">
                     <Phone className="w-4 h-4 mr-2" />
                     Contact Supplier
-                  </Button>
-                  <Button variant="outline" className="w-full" onClick={() => setShowOrderForm(true)}>
+                  </Button> */}
+                  {/* <Button variant="outline" className="w-full" onClick={() => setShowOrderForm(true)}>
                     Order Now
-                  </Button>
+                  </Button> */}
                 </div>
               </CardContent>
             </Card>
@@ -406,17 +464,17 @@ const ProductDetail = () => {
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-12 h-12">
-                    <AvatarImage src={product.profiles.profile_image_url} />
+                    <AvatarImage src={"images" || product.profiles.profile_image_url || "image"} />
                     <AvatarFallback>
-                      {product.profiles.company_name?.charAt(0) || 'S'}
+                      {product.supplier.companyName?.charAt(0) || 'S'}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <h4 className="font-medium">{product.profiles.company_name}</h4>
+                    <h4 className="font-medium">{product.supplier.companyName}</h4>
                     <p className="text-sm text-muted-foreground">
-                      {product.profiles.contact_person}
+                      {product.supplier.name}
                     </p>
-                    {product.profiles.is_verified && (
+                    {product.supplier.isVerified && (
                       <Badge variant="default" className="mt-1">
                         <Star className="w-3 h-3 mr-1" />
                         Verified
@@ -425,7 +483,7 @@ const ProductDetail = () => {
                   </div>
                 </div>
 
-                {product.profiles.description && (
+                {'description' || product.profiles.description && (
                   <p className="text-sm text-muted-foreground">
                     {product.profiles.description}
                   </p>
@@ -434,9 +492,9 @@ const ProductDetail = () => {
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-muted-foreground" />
-                    <span>{product.profiles.city}, {product.profiles.country}</span>
+                    <span>{product.supplier.address.city}, {product.supplier.address.country}</span>
                   </div>
-                  {product.profiles.website && (
+                  {/* {'website Link' ||product.profiles.website && (
                     <div className="flex items-center gap-2">
                       <Globe className="w-4 h-4 text-muted-foreground" />
                       <a 
@@ -448,15 +506,15 @@ const ProductDetail = () => {
                         Visit Website
                       </a>
                     </div>
-                  )}
+                  )} */}
                 </div>
 
                 <Separator />
 
                 <Button variant="outline" className="w-full" asChild>
-                  <Link to={`/supplier/${product.profiles.id}`}>
-                    View Full Profile
-                  </Link>
+                  {/* <Link to={`/supplier/${product.profiles.id}`}> */}
+                  View Full Profile
+                  {/* </Link> */}
                 </Button>
               </CardContent>
             </Card>
@@ -464,7 +522,7 @@ const ProductDetail = () => {
         </div>
       </main>
 
-      <section className="mt-8">
+      {/* <section className="mt-8">
         <h2 className="text-xl font-semibold mb-2">Reviews</h2>
         <div className="flex items-center mb-4">
           {[...Array(5)].map((_, i) => (
@@ -487,7 +545,7 @@ const ProductDetail = () => {
             </li>
           ))}
         </ul>
-      </section>
+      </section> */}
 
       {showOrderForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

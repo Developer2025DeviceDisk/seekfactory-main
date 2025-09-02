@@ -17,6 +17,7 @@ const ProfileManagement = () => {
   const { user, updateUserProfile } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
 
   const [profile, setProfile] = useState({
@@ -74,17 +75,38 @@ const ProfileManagement = () => {
     }
   };
 
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setAvatarFile(file);
+
+      // Optional: show preview immediately
+      const reader = new FileReader();
+      reader.onload = () => {
+        setProfile(prev => ({ ...prev, avatar: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Use the auth context's updateUserProfile method
-      await updateUserProfile({
-        name: profile.name,
-        companyName: profile.companyName,
-        businessType: profile.businessType,
-        phone: profile.phone,
-        address: profile.address
-      });
+      const formData = new FormData();
+      formData.append('name', profile.name);
+      formData.append('companyName', profile.companyName);
+      formData.append('businessType', profile.businessType);
+      formData.append('phone', profile.phone);
+      formData.append('description', profile.description);
+      formData.append('website', profile.website);
+      formData.append('address', JSON.stringify(profile.address));
+
+      if (avatarFile) {
+        formData.append('avatar', avatarFile);
+      }
+
+      // Assuming updateUserProfile can handle FormData on backend
+      await updateUserProfile(formData);
 
       toast({
         title: "Success",
@@ -120,7 +142,7 @@ const ProfileManagement = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <main className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-6">
@@ -146,17 +168,25 @@ const ProfileManagement = () => {
               <CardContent className="space-y-4">
                 <div className="flex flex-col items-center gap-4">
                   <Avatar className="w-32 h-32">
-                    <AvatarImage src={user.avatar} />
+                    <AvatarImage src={profile.avatar || user.avatar} />
                     <AvatarFallback className="text-2xl">
                       {user.name?.charAt(0) || 'U'}
                     </AvatarFallback>
                   </Avatar>
-                  <Button variant="outline" size="sm">
-                    <Upload className="w-4 h-4 mr-2" />
-                    Upload New Photo
-                  </Button>
+
+                  <label htmlFor="avatar-upload" className="btn btn-outline cursor-pointer flex items-center gap-2">
+                    <Upload className="w-4 h-4" /> Upload New Photo
+                  </label>
+                  <input
+                    id="avatar-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarChange}
+                  />
                 </div>
-                
+
+
                 <div className="space-y-3">
                   <div>
                     <Label htmlFor="role">Account Type</Label>
@@ -296,8 +326,8 @@ const ProfileManagement = () => {
                   </div>
                   <div>
                     <Label htmlFor="address.country">Country</Label>
-                    <Select 
-                      value={profile.address.country} 
+                    <Select
+                      value={profile.address.country}
                       onValueChange={(value) => handleInputChange('address.country', value)}
                     >
                       <SelectTrigger>

@@ -1,105 +1,29 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/components/Layout/Header";
-
-interface Product {
-  id: number;
-  title: string;
-  category: string;
-  price: string;
-  stock: boolean;
-  moq: string;
-  leadTime: string;
-  image: string;
-}
-
-const products: Product[] = [
-  {
-    id: 1,
-    title: "Test CNC Machine",
-    category: "Manufacturing",
-    price: "$50,000",
-    stock: true,
-    moq: "1 units",
-    leadTime: "4-6 weeks",
-    image:
-      "https://images.unsplash.com/photo-1647427060118-4911c9821b82?ixlib=rb-4.1.0&q=85",
-  },
-  {
-    id: 1,
-    title: "Test CNC Machine",
-    category: "Manufacturing",
-    price: "$50,000",
-    stock: true,
-    moq: "1 units",
-    leadTime: "4-6 weeks",
-    image:
-      "https://images.unsplash.com/photo-1647427060118-4911c9821b82?ixlib=rb-4.1.0&q=85",
-  },
-  {
-    id: 1,
-    title: "Test CNC Machine",
-    category: "Manufacturing",
-    price: "$50,000",
-    stock: true,
-    moq: "1 units",
-    leadTime: "4-6 weeks",
-    image:
-      "https://images.unsplash.com/photo-1647427060118-4911c9821b82?ixlib=rb-4.1.0&q=85",
-  },
-  {
-    id: 1,
-    title: "Test CNC Machine",
-    category: "Manufacturing",
-    price: "$50,000",
-    stock: true,
-    moq: "1 units",
-    leadTime: "4-6 weeks",
-    image:
-      "https://images.unsplash.com/photo-1647427060118-4911c9821b82?ixlib=rb-4.1.0&q=85",
-  },
-  {
-    id: 1,
-    title: "Test CNC Machine",
-    category: "Manufacturing",
-    price: "$50,000",
-    stock: true,
-    moq: "1 units",
-    leadTime: "4-6 weeks",
-    image:
-      "https://images.unsplash.com/photo-1647427060118-4911c9821b82?ixlib=rb-4.1.0&q=85",
-  },
-  {
-    id: 1,
-    title: "Test CNC Machine",
-    category: "Manufacturing",
-    price: "$50,000",
-    stock: true,
-    moq: "1 units",
-    leadTime: "4-6 weeks",
-    image:
-      "https://images.unsplash.com/photo-1647427060118-4911c9821b82?ixlib=rb-4.1.0&q=85",
-  },
-  {
-    id: 1,
-    title: "Test CNC Machine",
-    category: "Manufacturing",
-    price: "$50,000",
-    stock: true,
-    moq: "1 units",
-    leadTime: "4-6 weeks",
-    image:
-      "https://images.unsplash.com/photo-1647427060118-4911c9821b82?ixlib=rb-4.1.0&q=85",
-  },
-];
+import { useProducts } from "../contexts/ProductContext";
+import { useNavigate } from "react-router-dom";
 
 export default function Home() {
+  const navigate = useNavigate();
+  const BASE_URL = `${import.meta.env.VITE_API_URL}`; // ✅ your backend URL
+  
+  const { products, fetchProducts, loading } = useProducts();
+
   const [showFilters, setShowFilters] = useState(false);
   const [category, setCategory] = useState("All Categories");
   const [sortBy, setSortBy] = useState("Newest First");
   const [sortOrder, setSortOrder] = useState("Descending");
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(100000);
+
+  useEffect(() => {
+    fetchProducts(); // fetch on page load
+  }, []);
+
+  useEffect(() => {
+    console.log("✅ Products from API:", products);
+  }, [products]);
 
   return (
     <div>
@@ -172,7 +96,7 @@ export default function Home() {
                 Price Range: ${minPrice} - ${maxPrice}
               </label>
               <div className="relative flex items-center">
-                {/* Min Price Slider */}
+                {/* Min Price */}
                 <input
                   type="range"
                   min="0"
@@ -185,7 +109,7 @@ export default function Home() {
                   className="absolute pointer-events-none appearance-none w-full h-1 bg-transparent z-20 [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-600"
                 />
 
-                {/* Max Price Slider */}
+                {/* Max Price */}
                 <input
                   type="range"
                   min="0"
@@ -198,7 +122,7 @@ export default function Home() {
                   className="absolute pointer-events-none appearance-none w-full h-1 bg-transparent z-10 [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-600"
                 />
 
-                {/* Background Track */}
+                {/* Track */}
                 <div className="relative w-full h-1 bg-gray-300 rounded">
                   <div
                     className="absolute h-1 bg-blue-600 rounded"
@@ -215,57 +139,92 @@ export default function Home() {
 
         {/* Products Grid */}
         <h2 className="text-xl sm:text-2xl font-bold mb-6">
-          Products ({products.length})
+          Products ({products?.length || 0})
         </h2>
-        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-          {products.map((product) => (
-            <div
-              key={product.id}
-              className="bg-white shadow rounded-2xl overflow-hidden transition hover:shadow-xl"
-            >
-              <div className="relative h-48 sm:h-56 w-full">
-                <img
-                  src={product.image}
-                  alt={product.title}
-                  className="w-full h-full object-cover"
-                />
-                <span className="absolute top-2 right-2 bg-black text-white text-xs px-2 py-1 rounded">
-                  {product.category}
-                </span>
-              </div>
 
-              <div className="p-4">
-                <h3 className="text-base sm:text-lg font-semibold">{product.title}</h3>
-                <p className="text-gray-500 text-sm mb-2">
-                  High precision CNC machine for manufacturing
-                </p>
+        {loading ? (
+          <p>Loading products...</p>
+        ) : products?.length === 0 ? (
+          <p>No products found.</p>
+        ) : (
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+            {products.map((product: any) => {
+              // Compute image URL safely
+              const imageUrl =
+                product?.images?.length > 0
+                  ? `${BASE_URL}${product.images[0]}`
+                  : "https://via.placeholder.com/300";
 
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-blue-600 font-bold text-lg">
-                    {product.price}
-                  </span>
-                  <span className="bg-black text-white text-xs px-2 py-1 rounded">
-                    {product.stock ? "In Stock" : "Out of Stock"}
-                  </span>
+              // Log it for debugging
+              console.log("🖼️ Image URL for product:", product.name, imageUrl);
+
+              return (
+                <div
+                  key={product._id}
+                  className="bg-white shadow rounded-2xl overflow-hidden transition hover:shadow-xl"
+                >
+                  {/* Product Image */}
+                  <div className="relative h-48 sm:h-56 w-full">
+                    <img
+                      src={imageUrl}
+                      alt={product.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <span className="absolute top-2 right-2 bg-black text-white text-xs px-2 py-1 rounded">
+                      {product.category || "Uncategorized"}
+                    </span>
+                  </div>
+
+                  {/* Product Details */}
+                  <div className="p-4">
+                    <h3 className="text-base sm:text-lg font-semibold">
+                      {product.title}
+                    </h3>
+                    <span className="absolute top-2 right-2 bg-black text-white text-xs px-2 py-1 rounded">
+                      {product.subcategory || "no subcategory"}
+                    </span>
+                    <p className="text-gray-500 text-sm mb-2">
+                      {product.name || "No description"}
+                    </p>
+                    <p className="text-gray-500 text-sm mb-2">
+                      {product.sort_description || "No Sort description"}
+                    </p>
+
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-blue-600 font-bold text-lg">
+                        ${product.priceRange || "N/A"}
+                      </span>
+                      <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                        {product.stock ? "In Stock" : "Out of Stock"}
+                      </span>
+                    </div>
+
+                    <p className="text-gray-500 text-sm">
+                      MOQ: {product.minOrderQuantity || "-"}
+                    </p>
+                    <p className="text-gray-500 text-sm mb-3">
+                      Lead Time: {product.leadTime || "-"}
+                    </p>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => navigate(`/product/${product._id}`)}
+                        className="flex-1 border border-gray-300 py-2 rounded-lg hover:bg-gray-100 transition text-sm">
+                        View Details
+                      </button>
+                      <button
+                      onClick={()=> navigate(`/inquiry/new`)}
+                       className="flex-1 bg-black text-white py-2 rounded-lg hover:bg-gray-800 transition text-sm">
+                        chat with us
+                      </button>
+                    </div>
+                  </div>
                 </div>
+              );
+            })}
 
-                <p className="text-gray-500 text-sm">MOQ: {product.moq}</p>
-                <p className="text-gray-500 text-sm mb-3">
-                  Lead Time: {product.leadTime}
-                </p>
-
-                <div className="flex gap-2">
-                  <button className="flex-1 border border-gray-300 py-2 rounded-lg hover:bg-gray-100 transition text-sm">
-                    View Details
-                  </button>
-                  <button className="flex-1 bg-black text-white py-2 rounded-lg hover:bg-gray-800 transition text-sm">
-                    Inquire
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+          </div>
+        )}
       </main>
     </div>
   );
