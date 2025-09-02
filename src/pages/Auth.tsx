@@ -35,92 +35,176 @@ const Auth = () => {
     }
   }, [user, navigate]);
 
+  // const handleSignIn = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setIsLoading(true);
+
+  //   try {
+  //     const result = await signIn(signInData);
+  //     toast({
+  //       title: "Welcome back!",
+  //       description: "Successfully signed in to SeekFactory.",
+  //     });
+
+  //     // Redirect based on user role
+  //     const userRole = result?.user?.role || result?.role;
+  //     if (userRole === 'supplier') {
+  //       navigate("/dashboard");
+  //     } else {
+  //       navigate("/");
+  //     }
+  //   } catch (error) {
+  //     toast({
+  //       title: "Sign In Failed",
+  //       description: error instanceof Error ? error.message : "An error occurred during sign in",
+  //       variant: "destructive",
+  //     });
+  //   }
+
+  //   setIsLoading(false);
+  // };
+
   const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+  e.preventDefault();
+  setIsLoading(true);
 
-    try {
-      const result = await signIn(signInData);
-      toast({
-        title: "Welcome back!",
-        description: "Successfully signed in to SeekFactory.",
-      });
+  try {
+    const result = await signIn(signInData);
+    toast({
+      title: "Welcome back!",
+      description: "Successfully signed in to SeekFactory.",
+    });
 
-      // Redirect based on user role
-      const userRole = result?.user?.role || result?.role;
-      if (userRole === 'supplier') {
-        navigate("/dashboard");
-      } else {
-        navigate("/");
-      }
-    } catch (error) {
-      toast({
-        title: "Sign In Failed",
-        description: error instanceof Error ? error.message : "An error occurred during sign in",
-        variant: "destructive",
-      });
-    }
+    // 🔥 Redirect user to where they left off
+    const redirectPath = localStorage.getItem("redirectAfterLogin") || "/";
+    localStorage.removeItem("redirectAfterLogin");
 
-    setIsLoading(false);
-  };
+    navigate(redirectPath);
+  } catch (error) {
+    toast({
+      title: "Sign In Failed",
+      description: error instanceof Error ? error.message : "An error occurred during sign in",
+      variant: "destructive",
+    });
+  }
+
+  setIsLoading(false);
+};
+
+
+  // const handleSignUp = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+    
+  //   if (signUpData.password !== signUpData.confirmPassword) {
+  //     toast({
+  //       title: "Password Mismatch",
+  //       description: "Passwords do not match.",
+  //       variant: "destructive",
+  //     });
+  //     return;
+  //   }
+
+  //   if (signUpData.password.length < 6) {
+  //     toast({
+  //       title: "Weak Password",
+  //       description: "Password must be at least 6 characters long.",
+  //       variant: "destructive",
+  //     });
+  //     return;
+  //   }
+
+  //   setIsLoading(true);
+
+  //   try {
+  //     const userData = {
+  //       name: signUpData.name,
+  //       email: signUpData.email,
+  //       password: signUpData.password,
+  //       role: signUpData.role,
+  //       companyName: signUpData.companyName || undefined,
+  //       businessType: signUpData.businessType || undefined,
+  //       phone: signUpData.phone || undefined,
+  //     };
+
+  //     const result = await signUp(userData);
+  //     toast({
+  //       title: "Account Created!",
+  //       description: "Welcome to SeekFactory! Your account has been created successfully.",
+  //     });
+
+  //     // Redirect based on user role
+  //     const userRole = userData.role;
+  //     if (userRole === 'supplier') {
+  //       navigate("/dashboard");
+  //     } else {
+  //       navigate("/");
+  //     }
+  //   } catch (error) {
+  //     toast({
+  //       title: "Sign Up Failed",
+  //       description: error instanceof Error ? error.message : "An error occurred during sign up",
+  //       variant: "destructive",
+  //     });
+  //   }
+
+  //   setIsLoading(false);
+  // };
 
   const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (signUpData.password !== signUpData.confirmPassword) {
-      toast({
-        title: "Password Mismatch",
-        description: "Passwords do not match.",
-        variant: "destructive",
-      });
-      return;
-    }
+  e.preventDefault();
 
-    if (signUpData.password.length < 6) {
-      toast({
-        title: "Weak Password",
-        description: "Password must be at least 6 characters long.",
-        variant: "destructive",
-      });
-      return;
-    }
+  if (signUpData.password !== signUpData.confirmPassword) {
+    toast({
+      title: "Password Mismatch",
+      description: "Passwords do not match.",
+      variant: "destructive",
+    });
+    return;
+  }
 
-    setIsLoading(true);
+  if (signUpData.password.length < 6) {
+    toast({
+      title: "Weak Password",
+      description: "Password must be at least 6 characters long.",
+      variant: "destructive",
+    });
+    return;
+  }
 
-    try {
-      const userData = {
-        name: signUpData.name,
-        email: signUpData.email,
-        password: signUpData.password,
-        role: signUpData.role,
-        companyName: signUpData.companyName || undefined,
-        businessType: signUpData.businessType || undefined,
-        phone: signUpData.phone || undefined,
-      };
+  setIsLoading(true);
 
-      const result = await signUp(userData);
-      toast({
-        title: "Account Created!",
-        description: "Welcome to SeekFactory! Your account has been created successfully.",
-      });
+  try {
+    const userData = {
+      name: signUpData.name,
+      email: signUpData.email,
+      password: signUpData.password,
+      role: signUpData.role,
+      companyName: signUpData.companyName || undefined,
+      businessType: signUpData.businessType || undefined,
+      phone: signUpData.phone || undefined,
+    };
 
-      // Redirect based on user role
-      const userRole = userData.role;
-      if (userRole === 'supplier') {
-        navigate("/dashboard");
-      } else {
-        navigate("/");
-      }
-    } catch (error) {
-      toast({
-        title: "Sign Up Failed",
-        description: error instanceof Error ? error.message : "An error occurred during sign up",
-        variant: "destructive",
-      });
-    }
+    const result = await signUp(userData);
+    toast({
+      title: "Account Created!",
+      description: "Welcome to SeekFactory! Your account has been created successfully.",
+    });
 
-    setIsLoading(false);
-  };
+    // 🔥 Redirect user to where they left off
+    const redirectPath = localStorage.getItem("redirectAfterLogin") || "/";
+    localStorage.removeItem("redirectAfterLogin");
+
+    navigate(redirectPath);
+  } catch (error) {
+    toast({
+      title: "Sign Up Failed",
+      description: error instanceof Error ? error.message : "An error occurred during sign up",
+      variant: "destructive",
+    });
+  }
+
+  setIsLoading(false);
+};
 
   return (
     <div className="min-h-screen bg-background flex flex-col">

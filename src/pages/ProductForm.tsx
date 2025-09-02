@@ -12,12 +12,14 @@ import Footer from '@/components/Layout/Footer';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Plus, X, Upload } from 'lucide-react';
+import { ArrowLeft, Plus, X } from 'lucide-react';
 
 interface ProductFormData {
   name: string;
   description: string;
+  sort_description: string;
   category: string;
+  subcategory: string;
   priceRange: string;
   minOrderQuantity: string;
   countryOfOrigin: string;
@@ -26,22 +28,36 @@ interface ProductFormData {
   images: string[];
 }
 
+// ✅ Category → Subcategory mapping
+const categoryMap: Record<string, string[]> = {
+  "Industrial Machinery": ["CNC Machines", "Lathes", "Milling Machines"],
+  "Construction Equipment": ["Excavators", "Cranes", "Loaders"],
+  "Manufacturing Tools": ["Cutting Tools", "Welding Tools", "Hand Tools"],
+  "Agricultural Equipment": ["Tractors", "Harvesters", "Sprayers"],
+  "Electronics": ["Consumer Electronics", "Industrial Electronics", "Components"],
+  "Automotive Parts": ["Engine Parts", "Brake Systems", "Transmission Parts"],
+  "Textile Machinery": ["Knitting Machines", "Weaving Machines", "Sewing Machines"],
+  "Food Processing": ["Mixers", "Packaging Machines", "Cutting Machines"]
+};
+
 const ProductForm = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditing = Boolean(id);
-  
+
   const [loading, setLoading] = useState(false);
   const [loadingProduct, setLoadingProduct] = useState(isEditing);
   const [categories, setCategories] = useState<string[]>([]);
   const [currentTag, setCurrentTag] = useState('');
-  
+
   const [formData, setFormData] = useState<ProductFormData>({
     name: '',
     description: '',
+    sort_description: '',
     category: '',
+    subcategory: '',
     priceRange: '',
     minOrderQuantity: '',
     countryOfOrigin: '',
@@ -62,7 +78,7 @@ const ProductForm = () => {
     }
 
     fetchCategories();
-    
+
     if (isEditing && id) {
       fetchProduct(id);
     }
@@ -88,7 +104,9 @@ const ProductForm = () => {
         setFormData({
           name: product.name || '',
           description: product.description || '',
+          sort_description: product.sort_description || '',
           category: product.category || '',
+          subcategory: product.subcategory || '',
           priceRange: product.priceRange || '',
           minOrderQuantity: product.minOrderQuantity?.toString() || '',
           countryOfOrigin: product.countryOfOrigin || '',
@@ -117,6 +135,15 @@ const ProductForm = () => {
     }));
   };
 
+  // ✅ Reset subcategory when category changes
+  const handleCategoryChange = (value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      category: value,
+      subcategory: ''
+    }));
+  };
+
   const addTag = () => {
     if (currentTag.trim() && !formData.tags.includes(currentTag.trim())) {
       setFormData(prev => ({
@@ -136,7 +163,7 @@ const ProductForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name.trim()) {
       toast({
         title: 'Validation Error',
@@ -155,10 +182,28 @@ const ProductForm = () => {
       return;
     }
 
+    if (!formData.sort_description.trim()) {
+      toast({
+        title: 'Validation Error',
+        description: 'Product sort_description is required',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     if (!formData.category) {
       toast({
         title: 'Validation Error',
         description: 'Please select a category',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!formData.subcategory) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please select a subcategory',
         variant: 'destructive'
       });
       return;
@@ -170,7 +215,9 @@ const ProductForm = () => {
       const productData = {
         name: formData.name.trim(),
         description: formData.description.trim(),
+        sort_description: formData.sort_description.trim(),
         category: formData.category,
+        subcategory: formData.subcategory,
         priceRange: formData.priceRange.trim(),
         minOrderQuantity: formData.minOrderQuantity ? parseInt(formData.minOrderQuantity) : undefined,
         countryOfOrigin: formData.countryOfOrigin,
@@ -223,7 +270,7 @@ const ProductForm = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
@@ -237,10 +284,9 @@ const ProductForm = () => {
                 {isEditing ? 'Edit Product' : 'Create New Product'}
               </h1>
               <p className="text-muted-foreground">
-                {isEditing 
+                {isEditing
                   ? 'Update your product information'
-                  : 'Add a new product to your catalog. It will be reviewed before going live.'
-                }
+                  : 'Add a new product to your catalog. It will be reviewed before going live.'}
               </p>
             </div>
           </div>
@@ -274,11 +320,22 @@ const ProductForm = () => {
                     required
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="sort_description">Sort Description *</Label>
+                  <Textarea
+                    id="sort_description"
+                    value={formData.sort_description}
+                    onChange={(e) => handleInputChange('sort_description', e.target.value)}
+                    placeholder="Short description for listings"
+                    rows={3}
+                    required
+                  />
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="category">Category *</Label>
-                    <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
+                    <Select value={formData.category} onValueChange={handleCategoryChange}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a category" />
                       </SelectTrigger>
@@ -290,21 +347,43 @@ const ProductForm = () => {
                             </SelectItem>
                           ))
                         ) : (
-                          <>
-                            <SelectItem value="Industrial Machinery">Industrial Machinery</SelectItem>
-                            <SelectItem value="Construction Equipment">Construction Equipment</SelectItem>
-                            <SelectItem value="Manufacturing Tools">Manufacturing Tools</SelectItem>
-                            <SelectItem value="Agricultural Equipment">Agricultural Equipment</SelectItem>
-                            <SelectItem value="Electronics">Electronics</SelectItem>
-                            <SelectItem value="Automotive Parts">Automotive Parts</SelectItem>
-                            <SelectItem value="Textile Machinery">Textile Machinery</SelectItem>
-                            <SelectItem value="Food Processing">Food Processing</SelectItem>
-                          </>
+                          Object.keys(categoryMap).map((cat) => (
+                            <SelectItem key={cat} value={cat}>
+                              {cat}
+                            </SelectItem>
+                          ))
                         )}
                       </SelectContent>
                     </Select>
                   </div>
 
+                  {/* ✅ Subcategory dropdown */}
+                  <div className="space-y-2">
+                    <Label htmlFor="subcategory">Subcategory *</Label>
+                    <Select
+                      value={formData.subcategory}
+                      onValueChange={(value) => handleInputChange('subcategory', value)}
+                      disabled={!formData.category}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a subcategory" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {formData.category && categoryMap[formData.category]?.length > 0 ? (
+                          categoryMap[formData.category].map((sub) => (
+                            <SelectItem key={sub} value={sub}>
+                              {sub}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="Other">Other</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="price_range">Price Range</Label>
                     <Input
@@ -314,9 +393,7 @@ const ProductForm = () => {
                       placeholder="e.g., $10-50 per unit"
                     />
                   </div>
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="min_order_quantity">Minimum Order Quantity</Label>
                     <Input
@@ -327,27 +404,27 @@ const ProductForm = () => {
                       placeholder="e.g., 100"
                     />
                   </div>
+                </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="country_of_origin">Country of Origin</Label>
-                    <Select 
-                      value={formData.countryOfOrigin} 
-                      onValueChange={(value) => handleInputChange('countryOfOrigin', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select country" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="China">China</SelectItem>
-                        <SelectItem value="India">India</SelectItem>
-                        <SelectItem value="Vietnam">Vietnam</SelectItem>
-                        <SelectItem value="Thailand">Thailand</SelectItem>
-                        <SelectItem value="Malaysia">Malaysia</SelectItem>
-                        <SelectItem value="Indonesia">Indonesia</SelectItem>
-                        <SelectItem value="Other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="country_of_origin">Country of Origin</Label>
+                  <Select
+                    value={formData.countryOfOrigin}
+                    onValueChange={(value) => handleInputChange('countryOfOrigin', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="China">China</SelectItem>
+                      <SelectItem value="India">India</SelectItem>
+                      <SelectItem value="Vietnam">Vietnam</SelectItem>
+                      <SelectItem value="Thailand">Thailand</SelectItem>
+                      <SelectItem value="Malaysia">Malaysia</SelectItem>
+                      <SelectItem value="Indonesia">Indonesia</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardContent>
             </Card>

@@ -46,6 +46,30 @@ interface User {
   updatedAt: string;
 }
 
+interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  quantity: number;
+  category: string;
+  subcategory?: string;
+  images: string[];   // URLs after upload
+  user: User;         // the supplier who created it
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface CreateProductData {
+  name: string;
+  description: string;
+  price: number;
+  quantity: number;
+  category: string;
+  subcategory?: string;
+}
+
+
 class ApiClient {
   private baseURL: string;
   private token: string | null = null;
@@ -67,19 +91,19 @@ class ApiClient {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-    console.log(this.baseURL , "this.baseurl is")
+      console.log(this.baseURL, "this.baseurl is")
       const response = await fetch(`${this.baseURL}/health`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         signal: controller.signal
       });
-      
+
       clearTimeout(timeoutId);
       this.isBackendAvailable = response.ok;
       console.log('✅ MongoDB Backend connected successfully!');
     } catch (error) {
       this.isBackendAvailable = false;
-      console.warn('⚠️ MongoDB Backend not available. Is the server running on localhost:5000?');
+      console.warn(`⚠️ MongoDB Backend not available. Is the server running on ${import.meta.env.VITE_API_URL}?`);
     }
 
     return this.isBackendAvailable;
@@ -90,7 +114,7 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`;
-    
+
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
@@ -179,7 +203,7 @@ class ApiClient {
       const response = await this.request('/auth/logout', {
         method: 'POST',
       });
-      
+
       this.setToken(null);
       return response;
     } catch (error) {
@@ -199,18 +223,31 @@ class ApiClient {
     return this.request<User>('/auth/me');
   }
 
-  async updateProfile(userData: Partial<User>): Promise<ApiResponse<User>> {
-    const isBackendAvailable = await this.checkBackendAvailability();
+async updateProfile(userData: Partial<User> | FormData): Promise<ApiResponse<User>> {
+  const isBackendAvailable = await this.checkBackendAvailability();
 
-    if (!isBackendAvailable) {
-      throw new Error('Backend server not available. Please start the MongoDB backend server first.\n\nRun: cd backend && npm run dev');
-    }
-
-    return this.request<User>('/auth/profile', {
-      method: 'PUT',
-      body: JSON.stringify(userData),
-    });
+  if (!isBackendAvailable) {
+    throw new Error(
+      'Backend server not available. Please start the MongoDB backend server first.\n\nRun: cd backend && npm run dev'
+    );
   }
+
+  const isFormData = userData instanceof FormData;
+
+  // Get the stored token (adjust depending on how you store it, e.g., localStorage)
+  const token = localStorage.getItem('auth_token');
+
+  return this.request<User>('/auth/profile', {
+    method: 'PUT',
+    body: isFormData ? userData : JSON.stringify(userData),
+    headers: {
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+
 
   // Product management endpoints
   async getProducts(filters?: any): Promise<ApiResponse<any[]>> {
@@ -221,7 +258,9 @@ class ApiClient {
     }
 
     const params = new URLSearchParams(filters);
-    return this.request(`/products?${params.toString()}`);
+    // return this.request(`/products?${params.toString()}`);
+        return this.request(`/products`);
+
   }
 
   async getProduct(id: string): Promise<ApiResponse<any>> {
@@ -234,18 +273,31 @@ class ApiClient {
     return this.request(`/products/${id}`);
   }
 
-  async createProduct(productData: any): Promise<ApiResponse<any>> {
+  async createProduct(data: CreateProductData, images?: File[]): Promise<ApiResponse<Product>> {
     const isBackendAvailable = await this.checkBackendAvailability();
-
     if (!isBackendAvailable) {
-      throw new Error('Backend server not available. Please start the MongoDB backend server first.\n\nRun: cd backend && npm run dev');
+      throw new Error('Backend not available. Please start MongoDB backend first.');
     }
 
-    return this.request('/products', {
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, value.toString());
+      }
+    });
+    if (images) {
+      images.forEach((file) => formData.append("images", file));
+    }
+
+    return this.request<Product>('/products/create-new', {
       method: 'POST',
-      body: JSON.stringify(productData),
+      body: formData,
+      headers: {
+        Authorization: `Bearer ${this.token}`, // ✅ only token, no content-type
+      },
     });
   }
+
 
   async updateProduct(id: string, productData: any): Promise<ApiResponse<any>> {
     const isBackendAvailable = await this.checkBackendAvailability();
@@ -272,6 +324,7 @@ class ApiClient {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async getMyProducts(filters?: any): Promise<ApiResponse<any[]>> {
     const isBackendAvailable = await this.checkBackendAvailability();
 
@@ -316,4 +369,7 @@ class ApiClient {
 }
 
 export const apiClient = new ApiClient();
-export type { User, LoginCredentials, RegisterData, ApiResponse };
+export type {
+  User, LoginCredentials, RegisterData, ApiResponse, Product,
+  CreateProductData
+};

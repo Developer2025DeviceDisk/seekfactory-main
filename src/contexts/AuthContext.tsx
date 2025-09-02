@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { apiClient, User, LoginCredentials, RegisterData } from '@/lib/api';
 
-interface AuthUser extends User {}
+interface AuthUser extends User { }
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -30,7 +30,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Check if user is logged in on app start
     const initializeAuth = async () => {
       const token = localStorage.getItem('auth_token');
-      
+
       if (token) {
         try {
           const response = await apiClient.getCurrentUser();
@@ -48,7 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           apiClient.setToken(null);
         }
       }
-      
+
       setLoading(false);
     };
 
@@ -58,7 +58,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signIn = async (credentials: LoginCredentials) => {
     try {
       const response = await apiClient.login(credentials);
-      
+
       if (response.success && response.user) {
         setUser(response.user);
       } else {
@@ -73,7 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (userData: RegisterData) => {
     try {
       const response = await apiClient.register(userData);
-      
+
       if (response.success && response.user) {
         setUser(response.user);
       } else {
@@ -97,10 +97,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateUserProfile = async (userData: Partial<AuthUser>) => {
+  const updateUserProfile = async (userData: FormData) => {
     try {
-      const response = await apiClient.updateProfile(userData);
-      
+      // Send FormData with proper headers
+      const response = await apiClient.updateProfile(userData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
       if (response.success && response.user) {
         setUser(response.user);
       } else {
@@ -111,6 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw error;
     }
   };
+
 
   const value = {
     user,

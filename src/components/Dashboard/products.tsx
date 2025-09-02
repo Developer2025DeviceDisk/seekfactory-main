@@ -9,16 +9,14 @@ interface Product {
 }
 
 const MyProducts: React.FC = () => {
-  console.log("MyProducts component rendered");
   const [products, setProducts] = useState<Product[]>([]);
-  console.log(products, "products from new file");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const token = localStorage.getItem("auth_token"); // JWT token
-        const res = await axios.get("https://seekfactory-backend.onrender.com/api/products/my/products", {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/products/my/products`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

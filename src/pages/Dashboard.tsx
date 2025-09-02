@@ -81,7 +81,7 @@ useEffect(() => {
 const fetchProducts = async () => {
   const auth_token = localStorage.getItem("auth_token");
   try {
-    const res = await fetch("https://seekfactory-backend.onrender.com/api/products/my/products", {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/products/my/products`, {
       headers: {
         Authorization: `Bearer ${auth_token}`,
       },
@@ -89,7 +89,6 @@ const fetchProducts = async () => {
     const data = await res.json();
     if (res.ok) {
       setProducts(data);
-      console.log(data, "products in dashboard");
     }
   } catch (error) {
     console.error("Error fetching products:", error);
@@ -98,7 +97,6 @@ const fetchProducts = async () => {
 
 useEffect(()=>{
   fetchProducts();
-  console.log(fetchProducts());
 },[])
 
   const fetchDashboard = async () => {
@@ -179,7 +177,7 @@ useEffect(()=>{
         </div>
 
         {/* Dashboard Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Products</CardTitle>
@@ -202,7 +200,7 @@ useEffect(()=>{
             </CardContent>
           </Card>
           
-          <Card>
+          {/* <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Profile Views</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
@@ -211,9 +209,9 @@ useEffect(()=>{
               <div className="text-2xl font-bold">1,234</div>
               <p className="text-xs text-muted-foreground">This month</p>
             </CardContent>
-          </Card>
+          </Card> */}
           
-          <Card>
+          {/* <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Rating</CardTitle>
               <Star className="h-4 w-4 text-muted-foreground" />
@@ -222,13 +220,13 @@ useEffect(()=>{
               <div className="text-2xl font-bold">4.8</div>
               <p className="text-xs text-muted-foreground">Average rating</p>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
 
         {/* Dashboard Content */}
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
+        <Tabs defaultValue="products" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            {/* <TabsTrigger value="overview">Overview</TabsTrigger> */}
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="inquiries">Inquiries</TabsTrigger>
             <TabsTrigger value="profile">Profile</TabsTrigger>
