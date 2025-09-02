@@ -492,7 +492,7 @@ const ProductDetail = () => {
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-muted-foreground" />
-                    <span>{product.supplier.address.city}, {product.supplier.address.country}</span>
+                    <span>{product?.supplier?.address?.city || "City N/A"}, {product?.supplier?.address?.country || "Country N/A"}</span>
                   </div>
                   {/* {'website Link' ||product.profiles.website && (
                     <div className="flex items-center gap-2">
